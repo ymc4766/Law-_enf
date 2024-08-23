@@ -4,6 +4,7 @@ import {
   myOrders,
   newOrder,
   orderDetails,
+  updateOderItemPrice,
   updateOrder,
   updateOrderProcur,
 } from "../controllers/orderController.js";
@@ -20,5 +21,6 @@ router.get("/:id", protect, orderDetails);
 router.route("/:id/updatestock").put(protect, updateOrder);
 
 router.route("/deliver/procur/:id").put(protect, updateOrderProcur);
+router.put("/updateItemPrice/:itemId", protect, updateOderItemPrice);
 
 export default router;

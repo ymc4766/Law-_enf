@@ -128,3 +128,48 @@ export const updateOrderProcur = asyncHandler(async (req, res) => {
 
   res.json(updatedOrder);
 });
+
+// update price supplier
+export const updateOderItemPrice = asyncHandler(async (req, res, next) => {
+  const itemId = req.params.itemId;
+  const { newPrice, supplier } = req.body;
+
+  try {
+    // Find the order that contains the specific order item
+    const orderToUpdate = await Order.findOne({ "orderItems._id": itemId });
+
+    if (!orderToUpdate) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Update the price and supplier of the specific order item
+    orderToUpdate.orderItems.forEach(async (item) => {
+      if (item._id.toString() === itemId) {
+        // Update the order item
+        item.price = newPrice;
+        item.supplier = supplier || item.supplier;
+
+        // Save the changes to the order
+        await orderToUpdate.save();
+
+        // Find the updated order item
+        const updatedOrderItem = orderToUpdate.orderItems.find(
+          (item) => item._id.toString() === itemId
+        );
+
+        // Find the corresponding product and update its price
+        const product = await Product.findById(item.product);
+        if (product) {
+          product.price = newPrice;
+          product.supplier = supplier;
+          await product.save();
+        }
+
+        res.status(200).json({ updatedOrderItem });
+      }
+    });
+  } catch (error) {
+    // Use the next middleware to handle errors
+    next(new ErrorHandler("Error updating order item price", 500));
+  }
+});
